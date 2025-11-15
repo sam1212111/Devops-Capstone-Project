@@ -14,6 +14,7 @@ spec:
     - name: build-image
 
   tasks:
+
     - name: init
       workspaces:
         - name: source
@@ -45,13 +46,7 @@ spec:
         - name: image
           value: "python:3.9-slim"
         - name: args
-          value:
-            [
-              "--count",
-              "--max-complexity=10",
-              "--max-line-length=127",
-              "--statistics"
-            ]
+          value: "--count --max-complexity=10 --max-line-length=127 --statistics"
       runAfter:
         - clone
 
@@ -80,8 +75,8 @@ spec:
         - name: IMAGE
           value: "$(params.build-image)"
       runAfter:
-        - tests
         - lint
+        - tests
 
     - name: deploy
       workspaces:

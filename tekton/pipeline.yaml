@@ -80,7 +80,7 @@ spec:
 
     - name: deploy
       workspaces:
-        - name: manifest-dir
+        - name: source
           workspace: pipeline-workspace
       taskRef:
         name: openshift-client

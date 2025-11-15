@@ -2,6 +2,47 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
+  name: cleanup
+spec:
+  description: Cleanup workspace before starting pipeline
+  workspaces:
+    - name: source
+  steps:
+    - name: remove
+      image: alpine:latest
+      script: |
+        #!/bin/sh
+        rm -rf $(workspaces.source.path)/*
+
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: flake8
+spec:
+  description: Run flake8 linter
+  workspaces:
+    - name: source
+  params:
+    - name: image
+      type: string
+    - name: args
+      type: array
+  steps:
+    - name: flake8
+      image: $(params.image)
+      workingDir: $(workspaces.source.path)
+      script: |
+        #!/bin/bash
+        set -e
+        python -m pip install --upgrade pip wheel
+        pip install -qr requirements.txt
+        flake8 "${params.args[@]}"
+
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
   name: nose
 spec:
   description: This task will run nosetests on the provided input.
@@ -29,3 +70,27 @@ spec:
         python -m pip install --upgrade pip wheel
         pip install -qr requirements.txt
         nosetests $(params.args)
+
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: apply-manifests
+spec:
+  description: This task applies Kubernetes manifests using oc
+  workspaces:
+    - name: source
+  params:
+    - name: manifest-dir
+      description: Directory containing Kubernetes manifests
+      type: string
+      default: "deploy"
+  steps:
+    - name: apply
+      image: quay.io/openshift/origin-cli:latest
+      workingDir: $(workspaces.source.path)
+      script: |
+        #!/bin/bash
+        set -e
+        echo "Applying manifests in $(params.manifest-dir)"
+        oc apply -f $(params.manifest-dir)

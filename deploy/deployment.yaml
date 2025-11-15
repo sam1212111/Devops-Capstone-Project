@@ -1,9 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: accounts
   labels:
     app: accounts
-  name: accounts
 spec:
   replicas: 3
   selector:
@@ -18,7 +18,7 @@ spec:
         - name: icr-secret
       containers:
         - name: accounts
-          image: us.icr.io/sanat-namespace/accounts:1
+          image: IMAGE_NAME_HERE
           env:
             - name: DATABASE_HOST
               value: postgresql
